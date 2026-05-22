@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Growth Tracker | Premium Personal Finance</title>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Icons: Material Symbols Outlined & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS (Contains all compiled Tailwind utility classes and premium styling) -->
+  <link rel="stylesheet" href="index.css">
+  <!-- Chart.js CDN for visual premium graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-finBg font-sans text-slate-800 h-screen overflow-hidden flex">
+
+  <!-- ================= SIDEBAR NAVIGATION ================= -->
+  <aside class="w-64 bg-finSlate text-slate-300 flex flex-col h-full flex-shrink-0 border-r border-slate-800">
+    <!-- Branding Header -->
+    <div class="h-20 flex items-center px-6 border-b border-slate-800/60">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-fin bg-finEmerald flex items-center justify-center text-finSlate font-extrabold text-xl shadow-lg shadow-emerald-500/20">
+          G
+        </div>
+        <div>
+          <h1 class="text-white font-extrabold text-lg leading-tight tracking-tight">Growth Tracker</h1>
+          <span class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Spends &amp; Bills</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+      <a href="#" id="nav-dashboard" class="flex items-center space-x-3.5 px-4 py-3 rounded-fin text-sm font-semibold transition-all duration-200 bg-emerald-500/10 text-finEmerald border-l-4 border-finEmerald">
+        <i class="fa-solid fa-house text-lg w-5"></i>
+        <span>Home</span>
+      </a>
+      <a href="#" id="nav-ledger" class="flex items-center space-x-3.5 px-4 py-3 rounded-fin text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 border-l-4 border-transparent transition-all duration-200">
+        <i class="fa-solid fa-list-check text-lg w-5"></i>
+        <span>Spend History</span>
+      </a>
+      <a href="#" id="nav-funds" class="flex items-center space-x-3.5 px-4 py-3 rounded-fin text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 border-l-4 border-transparent transition-all duration-200">
+        <i class="fa-solid fa-piggy-bank text-lg w-5"></i>
+        <span>Savings Funds</span>
+      </a>
+    </nav>
+
+    <!-- App System Info (User Details & System Reset) -->
+    <div class="p-4 border-t border-slate-800/60 bg-slate-950/40">
+      <div class="flex items-center space-x-3 mb-3">
+        <div id="sidebar-avatar" class="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-white text-sm">
+          ??
+        </div>
+        <div class="flex-1 overflow-hidden">
+          <div class="flex items-center justify-between">
+            <p id="sidebar-username" class="text-white text-xs font-semibold truncate leading-tight">Loading...</p>
+            <button id="sidebar-mute-btn" onclick="window.soundEngine.toggleMute(); window.appBoot.updateMuteIcon();" class="text-slate-550 hover:text-emerald-400 sound-toggle-btn p-0.5" title="Toggle Sound FX">
+              <span class="material-symbols-outlined text-[15px]">volume_up</span>
+            </button>
+          </div>
+          <span id="sidebar-mode" class="text-[10px] text-slate-500 truncate block">Authenticating...</span>
+          <div id="sidebar-badge-showcase" class="flex gap-1 mt-1.5 items-center"></div>
+        </div>
+      </div>
+      <button id="reset-system-btn" class="w-full bg-slate-800/80 hover:bg-red-500/10 text-[11px] font-bold text-slate-500 hover:text-red-400 py-2 px-3 rounded-fin border border-slate-700/50 hover:border-red-500/20 transition-all duration-200 flex items-center justify-center space-x-2 mb-2">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>Reset Financial Data</span>
+      </button>
+      <button id="logout-btn" class="w-full bg-slate-800/80 hover:bg-rose-500/10 text-[11px] font-bold text-slate-500 hover:text-rose-400 py-2 px-3 rounded-fin border border-slate-700/50 hover:border-rose-500/20 transition-all duration-200 flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CORE CONTAINER ================= -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden">
+    
+    <!-- Global Top Bar -->
+    <header class="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between flex-shrink-0">
+      <!-- Page Title Context -->
+      <div class="flex items-center space-x-4">
+        <h2 id="view-title" class="text-xl font-extrabold text-slate-900 tracking-tight">Financial Overview</h2>
+        <!-- Real-Time Sync Indicators -->
+        <div id="sync-status" class="flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold transition-all duration-300 bg-amber-50 text-amber-600 border border-amber-200">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+          <span>Checking sync...</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions / Ledger Info -->
+      <div class="flex items-center space-x-4">
+        <!-- Theme Switcher Dropdown -->
+        <div class="relative flex items-center">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-450 text-xs z-10">
+            <i class="fa-solid fa-palette"></i>
+          </span>
+          <select id="theme-selector" class="appearance-none text-xs bg-slate-50 border border-slate-200 rounded-fin pl-8 pr-8 py-2.5 font-semibold text-slate-650 focus:outline-none focus:border-finEmerald/50 transition-all cursor-pointer relative">
+            <option value="classic-emerald">Emerald Slate</option>
+            <option value="midnight-neon">Midnight Neon</option>
+            <option value="royal-rose" selected>Royal Rose</option>
+            <option value="ocean-glacier">Ocean Glacier</option>
+            <option value="charcoal-rose">Nordic Rose</option>
+          </select>
+          <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-450 text-[10px] z-10">
+            <i class="fa-solid fa-chevron-down"></i>
+          </span>
+        </div>
+
+        <!-- Search Trigger -->
+        <div class="relative w-64">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-450 text-xs">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" id="global-search" placeholder="Search payees, categories..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin pl-9 pr-4 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+        </div>
+        
+        <!-- Add Expense CTA -->
+        <button id="quick-add-btn" class="bg-finSlate hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-fin shadow-md hover:shadow-lg transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-plus text-[10px]"></i>
+          <span>Add Daily Spend</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Dashboard/Ledger/Budget Main Dynamic Container -->
+    <section id="content-canvas" class="flex-1 overflow-y-auto px-8 py-6 relative">
+      <!-- Dynamic views render here via app.js -->
+    </section>
+
+  </main>
+
+  <!-- ================= POPUPS, TOASTS & MODALS ================= -->
+
+  <!-- Toast Alerts Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- ================= AUTH OVERLAY ================= -->
+  <div id="auth-overlay" class="fixed inset-0 z-[100] hidden items-center justify-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2027 100%)">
+    <!-- Animated Background Orbs -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-20" style="background: radial-gradient(circle, #10b981 0%, transparent 70%); animation: orb-float 8s ease-in-out infinite;"></div>
+      <div class="absolute -bottom-40 -right-40 w-96 h-96 rounded-full opacity-10" style="background: radial-gradient(circle, #6366f1 0%, transparent 70%); animation: orb-float 10s ease-in-out infinite reverse;"></div>
+      <div class="absolute top-1/2 left-1/4 w-64 h-64 rounded-full opacity-10" style="background: radial-gradient(circle, #0ea5e9 0%, transparent 70%); animation: orb-float 12s ease-in-out infinite 2s;"></div>
+    </div>
+
+    <!-- Auth Card -->
+    <div id="auth-card" class="relative w-full max-w-md mx-4 transform scale-95 opacity-0 transition-all duration-500">
+      <!-- Logo & Brand -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-2xl" style="background: linear-gradient(135deg, #10b981, #059669);">
+          <span class="text-white font-black text-2xl">G</span>
+        </div>
+        <h1 class="text-white font-black text-2xl tracking-tight">Growth Tracker</h1>
+        <p class="text-slate-400 text-sm mt-1">Premium Personal Finance for India</p>
+      </div>
+
+      <!-- Auth Panel -->
+      <div class="rounded-2xl overflow-hidden shadow-2xl" style="background: rgba(30,41,59,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(148,163,184,0.1);">
+        <!-- Tab Switcher -->
+        <div class="flex" id="auth-tabs">
+          <button id="tab-login" onclick="window.authController.showTab('login')" class="auth-tab-active flex-1 py-4 text-sm font-bold text-white border-b-2 border-emerald-400 transition-all duration-200">
+            Sign In
+          </button>
+          <button id="tab-register" onclick="window.authController.showTab('register')" class="auth-tab-inactive flex-1 py-4 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-300 transition-all duration-200">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Form Area -->
+        <div class="p-8">
+          <!-- Error/Success Alert -->
+          <div id="auth-alert" class="hidden mb-5 px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2"></div>
+
+          <!-- Login Form -->
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Username</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-user text-xs"></i></span>
+                <input id="login-username" type="text" placeholder="Enter your username" autocomplete="username"
+                  class="w-full text-sm text-white bg-slate-800/60 border border-slate-700 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-emerald-500 focus:bg-slate-800 transition-all placeholder-slate-600">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Password</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-lock text-xs"></i></span>
+                <input id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password"
+                  class="w-full text-sm text-white bg-slate-800/60 border border-slate-700 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:border-emerald-500 focus:bg-slate-800 transition-all placeholder-slate-600">
+                <button type="button" onclick="window.authController.togglePassword('login-password', this)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                  <i class="fa-solid fa-eye text-xs"></i>
+                </button>
+              </div>
+            </div>
+            <button type="submit" id="login-submit-btn" class="w-full py-3.5 rounded-xl text-sm font-extrabold text-slate-900 transition-all duration-200 hover:opacity-90 hover:shadow-lg hover:shadow-emerald-500/20 mt-2" style="background: linear-gradient(135deg, #10b981, #059669);">
+              Sign In to Dashboard
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="register-form" class="space-y-4 hidden">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Username</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-user text-xs"></i></span>
+                <input id="register-username" type="text" placeholder="Choose a username" autocomplete="username"
+                  class="w-full text-sm text-white bg-slate-800/60 border border-slate-700 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-emerald-500 focus:bg-slate-800 transition-all placeholder-slate-600">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Password</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-lock text-xs"></i></span>
+                <input id="register-password" type="password" placeholder="Create a strong password" autocomplete="new-password"
+                  class="w-full text-sm text-white bg-slate-800/60 border border-slate-700 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:border-emerald-500 focus:bg-slate-800 transition-all placeholder-slate-600">
+                <button type="button" onclick="window.authController.togglePassword('register-password', this)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                  <i class="fa-solid fa-eye text-xs"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Confirm Password</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-shield-halved text-xs"></i></span>
+                <input id="register-confirm" type="password" placeholder="Repeat your password" autocomplete="new-password"
+                  class="w-full text-sm text-white bg-slate-800/60 border border-slate-700 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-emerald-500 focus:bg-slate-800 transition-all placeholder-slate-600">
+              </div>
+            </div>
+            <button type="submit" id="register-submit-btn" class="w-full py-3.5 rounded-xl text-sm font-extrabold text-slate-900 transition-all duration-200 hover:opacity-90 hover:shadow-lg hover:shadow-emerald-500/20 mt-2" style="background: linear-gradient(135deg, #10b981, #059669);">
+              Create Account &amp; Start Tracking
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="flex items-center space-x-3 mt-6 mb-4">
+            <div class="flex-1 h-px bg-slate-700"></div>
+            <span class="text-[10px] text-slate-600 font-semibold uppercase tracking-widest">Or continue offline</span>
+            <div class="flex-1 h-px bg-slate-700"></div>
+          </div>
+          <button onclick="window.authController.demoLogin()" class="w-full py-3 rounded-xl text-xs font-bold text-slate-400 bg-slate-800/50 border border-slate-700 hover:border-slate-600 hover:text-slate-200 transition-all duration-200">
+            <i class="fa-solid fa-bolt mr-2 text-amber-400"></i>Demo Mode (No Account Needed)
+          </button>
+        </div>
+      </div>
+
+      <p class="text-center text-slate-600 text-[10px] mt-6">Growth Tracker &bull; Premium Wealth Management &bull; India</p>
+    </div>
+  </div>
+
+  <!-- Onboarding Wizard Modal Overlay -->
+  <div id="onboarding-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col transform scale-95 opacity-0 transition-all duration-300" id="onboarding-modal-card">
+      
+      <!-- Wizard Navigation Header -->
+      <div class="bg-finSlate px-8 py-6 text-white flex items-center justify-between border-b border-slate-800 flex-shrink-0">
+        <div>
+          <h3 class="font-extrabold text-lg leading-snug">Quick Finance Setup</h3>
+          <p class="text-xs text-slate-400">Set your starting cash balance and list your monthly recurring bills</p>
+        </div>
+        <div class="flex items-center space-x-2 text-[10px] uppercase font-bold tracking-widest text-finEmerald bg-emerald-500/10 px-3 py-1 rounded-full">
+          Step <span id="onboarding-step-indicator">1</span> of 2
+        </div>
+      </div>
+
+      <!-- Steps Canvas -->
+      <div class="flex-1 overflow-y-auto p-8" id="onboarding-step-content">
+        <!-- Injected dynamic steps (Liquid balances, SIPs, Statement Scanning) -->
+      </div>
+
+      <!-- Step Action Buttons Footer -->
+      <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <button id="onboard-prev" class="text-xs font-bold text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1" disabled>
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Previous</span>
+        </button>
+        <button id="onboard-next" class="bg-finEmerald hover:bg-emerald-600 text-finSlate font-extrabold text-xs px-6 py-2.5 rounded-fin shadow-md hover:shadow-lg transition-all flex items-center space-x-2">
+          <span>Continue</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add Transaction Modal Overlay -->
+  <div id="tx-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-30 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden flex flex-col border border-slate-200 animate-slide-up">
+      <div class="bg-finSlate text-white px-6 py-4 flex items-center justify-between">
+        <h3 class="font-extrabold text-sm">Add Financial Record</h3>
+        <button id="close-tx-modal" class="text-slate-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      
+      <form id="tx-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Record Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="border-2 border-slate-200 rounded-fin p-3 flex items-center justify-center space-x-2 cursor-pointer font-bold text-xs text-slate-500 hover:bg-slate-50 transition-all select-none" id="tx-type-expense-label">
+              <input type="radio" name="type" value="Expense" checked class="hidden">
+              <i class="fa-solid fa-arrow-trend-down text-rose-500"></i>
+              <span>Expense</span>
+            </label>
+            <label class="border-2 border-slate-200 rounded-fin p-3 flex items-center justify-center space-x-2 cursor-pointer font-bold text-xs text-slate-500 hover:bg-slate-50 transition-all select-none" id="tx-type-income-label">
+              <input type="radio" name="type" value="Income" class="hidden">
+              <i class="fa-solid fa-arrow-trend-up text-finEmerald"></i>
+              <span>Income</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label for="tx-payee" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Payee / Vendor Name</label>
+          <input type="text" id="tx-payee" placeholder="e.g. Swiggy, Zerodha Fund, Tata Power" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="tx-category" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Category</label>
+            <select id="tx-category" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Bills">Bills</option>
+              <option value="Salary">Salary</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div>
+            <label for="tx-amount" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Amount (₹)</label>
+            <input type="number" id="tx-amount" min="1" placeholder="Amount in ₹" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="tx-status" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Deduction Method</label>
+            <select id="tx-status" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+              <option value="Manual">Manual Entry</option>
+              <option value="Auto">Auto-Debited</option>
+              <option value="Fixed">Fixed Recurring</option>
+            </select>
+          </div>
+          <div>
+            <label for="tx-date" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Transaction Date</label>
+            <input type="date" id="tx-date" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-finEmerald hover:bg-emerald-600 text-finSlate font-extrabold text-xs py-3 rounded-fin shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Log Transaction</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage Bills Modal Overlay -->
+  <div id="bills-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-30 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden flex flex-col border border-slate-200 animate-slide-up">
+      <div class="bg-finSlate text-white px-6 py-4 flex items-center justify-between">
+        <h3 class="font-extrabold text-sm" id="bills-modal-title">Manage Recurring Monthly Bills</h3>
+        <button id="close-bills-modal" class="text-slate-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      
+      <div class="p-6 overflow-y-auto max-h-[70vh]" id="bills-modal-body">
+        <!-- Rendered dynamically by javascript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Fund Modal Overlay -->
+  <div id="fund-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-30 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden flex flex-col border border-slate-200 animate-slide-up">
+      <div class="bg-finSlate text-white px-6 py-4 flex items-center justify-between">
+        <h3 id="fund-modal-title" class="font-extrabold text-sm">Create Savings Goal</h3>
+        <button id="close-fund-modal" class="text-slate-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      
+      <form id="fund-form" class="p-6 space-y-4">
+        <input type="hidden" id="fund-id">
+        <div>
+          <label for="fund-name" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goal Name</label>
+          <input type="text" id="fund-name" placeholder="e.g. Vacation Fund, Kids Education" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+        </div>
+
+        <div>
+          <label for="fund-target" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Amount (₹)</label>
+          <input type="number" id="fund-target" min="1" placeholder="e.g. 50000" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="fund-icon" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Icon Style</label>
+            <select id="fund-icon" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+              <option value="savings">💰 General Savings</option>
+              <option value="shield">🛡️ Emergency / Safety</option>
+              <option value="directions_car">🚗 Car / Vehicle</option>
+              <option value="home">🏠 House / Property</option>
+              <option value="laptop">💻 Tech &amp; Gadgets</option>
+              <option value="flight">✈️ Travel &amp; Vacation</option>
+              <option value="school">🎓 Education</option>
+              <option value="favorite">❤️ Health / Emergency</option>
+            </select>
+          </div>
+          <div>
+            <label for="fund-color" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Color Theme</label>
+            <select id="fund-color" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+              <option value="emerald">Emerald Green</option>
+              <option value="sky">Sky Blue</option>
+              <option value="indigo">Indigo Purple</option>
+              <option value="amber">Amber Orange</option>
+              <option value="rose">Rose Red</option>
+              <option value="purple">Vibrant Violet</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2 flex space-x-2">
+          <button type="button" id="delete-fund-btn" class="hidden bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-bold text-xs px-4 py-3 rounded-fin border border-rose-500/20 hover:border-rose-500/30 transition-all flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-trash"></i>
+            <span>Delete</span>
+          </button>
+          <button type="submit" class="flex-1 bg-finEmerald hover:bg-emerald-600 text-finSlate font-extrabold text-xs py-3 rounded-fin shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="fund-submit-text">Create Savings Goal</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Log Contribution Modal Overlay -->
+  <div id="contribution-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-30 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden flex flex-col border border-slate-200 animate-slide-up">
+      <div class="bg-finSlate text-white px-6 py-4 flex items-center justify-between">
+        <h3 id="contribution-modal-title" class="font-extrabold text-sm">Add Funds / Withdraw</h3>
+        <button id="close-contribution-modal" class="text-slate-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      
+      <form id="contribution-form" class="p-6 space-y-4">
+        <input type="hidden" id="contribution-fund-id">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Action Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="border-2 border-slate-200 rounded-fin p-3 flex items-center justify-center space-x-2 cursor-pointer font-bold text-xs text-slate-500 hover:bg-slate-50 transition-all select-none" id="contrib-type-add-label">
+              <input type="radio" name="contribType" value="Contribution" checked class="hidden">
+              <i class="fa-solid fa-plus-circle text-finEmerald text-sm"></i>
+              <span>Contribute</span>
+            </label>
+            <label class="border-2 border-slate-200 rounded-fin p-3 flex items-center justify-center space-x-2 cursor-pointer font-bold text-xs text-slate-500 hover:bg-slate-50 transition-all select-none" id="contrib-type-withdraw-label">
+              <input type="radio" name="contribType" value="Withdrawal" class="hidden">
+              <i class="fa-solid fa-minus-circle text-rose-500 text-sm"></i>
+              <span>Withdraw</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label for="contribution-amount" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Amount (₹)</label>
+          <input type="number" id="contribution-amount" min="1" placeholder="e.g. 5000" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+        </div>
+
+        <div>
+          <label for="contribution-note" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Note / Description</label>
+          <input type="text" id="contribution-note" placeholder="e.g. Monthly allocation, Rent refund" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-fin px-3 py-2.5 focus:outline-none focus:border-finEmerald/50 focus:bg-white transition-all">
+        </div>
+
+        <!-- Real-Time Cash Sync Toggle -->
+        <div class="bg-slate-50 rounded-fin p-4 border border-slate-150 flex items-start space-x-3">
+          <div class="flex items-center h-5">
+            <input type="checkbox" id="contribution-sync" checked class="w-4 h-4 rounded text-finEmerald border-slate-300 focus:ring-finEmerald/30">
+          </div>
+          <div class="text-xs">
+            <label for="contribution-sync" id="sync-toggle-label" class="font-bold text-slate-700 block cursor-pointer select-none">Deduct from Cash Balance</label>
+            <p id="sync-toggle-help" class="text-slate-400 text-[10px] leading-relaxed mt-0.5">Automatically sync this with your main wallet balance and log a ledger record under Savings.</p>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-finEmerald hover:bg-emerald-600 text-finSlate font-extrabold text-xs py-3 rounded-fin shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="contribution-submit-text">Confirm Transaction</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Scripts -->
+  <script src="js/sound.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/onboarding.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/ledger.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/funds.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
