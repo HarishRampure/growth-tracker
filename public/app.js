@@ -422,13 +422,11 @@ class UIModalController {
 
     if (this.logoutBtn) {
       this.logoutBtn.onclick = () => {
-        if (confirm("Sign out of Growth Tracker?")) {
-          window.stateEngine.logout();
-          window.toastNotification("Signed out successfully.", "info");
-          // Show auth screen
-          window.authController.showTab('login');
-          window.authController.show();
-        }
+        window.stateEngine.logout();
+        window.toastNotification("Signed out successfully.", "info");
+        // Show auth screen
+        window.authController.showTab('login');
+        window.authController.show();
       };
     }
 

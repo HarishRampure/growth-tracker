@@ -5,100 +5,30 @@
 
 /* ================= CUSTOM BRANDING & CLASS UTILITIES ================= */
 
-:root, [data-theme="classic-emerald"] {
-  --color-primary: #0f172a;
-  --color-secondary: #006c4a;
-  --color-secondary-rgba: 0, 108, 74;
-  --color-secondary-container: #82f5c1;
-  --color-fin-bg: #f8fafc;
-  --color-fin-slate: #0f172a;
-  --color-fin-emerald: #10b981;
-  --color-fin-border: #e2e8f0;
-  --color-fin-glass: rgba(255, 255, 255, 0.75);
-  
+:root, [data-theme="classic-emerald"], [data-theme="royal-rose"],
+[data-theme="midnight-neon"], [data-theme="ocean-glacier"], [data-theme="charcoal-rose"] {
+  /* ── New 4-color palette ── */
+  --color-primary:   #2D3348;          /* Dark navy — headings, buttons */
+  --color-secondary: #547A95;          /* Steel blue — accents, links, active */
+  --color-secondary-rgba: 84, 122, 149;
+  --color-secondary-container: rgba(84, 122, 149, 0.18);
+  --color-gold:      #B5A570;          /* Warm gold — highlights, CTAs */
+
+  --color-fin-bg:      #E8ECF4;        /* Light lavender — page background */
+  --color-fin-slate:   #2D3348;        /* Dark navy — sidebar */
+  --color-fin-emerald: #547A95;        /* Steel blue — brand accent */
+  --color-fin-border:  #d4d9e8;
+
+  --color-fin-glass: rgba(255, 255, 255, 0.82);
   --color-header-bg: #ffffff;
-  --color-card-bg: #ffffff;
-  --color-card-border: rgba(226, 232, 240, 0.8);
-  --color-text-slate-800: #1e293b;
-  --color-text-slate-900: #0f172a;
-  --color-surface-container-low: #f8fafc;
+  --color-card-bg:   #ffffff;
+  --color-card-border: rgba(212, 217, 232, 0.8);
+  --color-text-slate-800: #2D3348;
+  --color-text-slate-900: #1a1f2e;
+  --color-surface-container-low: #f0f2f8;
 }
 
-[data-theme="midnight-neon"] {
-  --color-primary: #ffffff;
-  --color-secondary: #06b6d4; /* Cyber cyan */
-  --color-secondary-rgba: 6, 182, 212;
-  --color-secondary-container: rgba(139, 92, 246, 0.25); /* Neon purple container */
-  --color-fin-bg: #0b0f19; /* Cyber midnight background */
-  --color-fin-slate: #05070c; /* Deeper midnight sidebar */
-  --color-fin-emerald: #8b5cf6; /* Neon purple branding */
-  --color-fin-border: rgba(51, 65, 85, 0.6);
-  --color-fin-glass: rgba(11, 15, 25, 0.8);
-  
-  --color-header-bg: #070b12;
-  --color-card-bg: rgba(15, 23, 42, 0.7);
-  --color-card-border: rgba(6, 182, 212, 0.2);
-  --color-text-slate-800: #cbd5e1;
-  --color-text-slate-900: #ffffff;
-  --color-surface-container-low: #0f172a;
-}
 
-[data-theme="royal-rose"] {
-  --color-primary: #fbbf24; /* Regal Gold */
-  --color-secondary: #fbbf24;
-  --color-secondary-rgba: 251, 191, 36;
-  --color-secondary-container: rgba(244, 63, 94, 0.2); /* Deep velvet rose container */
-  --color-fin-bg: #140b20; /* Deep royal amethyst base */
-  --color-fin-slate: #0b0512; /* Darker sidebar */
-  --color-fin-emerald: #f43f5e; /* Velvet rose brand */
-  --color-fin-border: rgba(99, 44, 129, 0.45);
-  --color-fin-glass: rgba(20, 11, 32, 0.8);
-  
-  --color-header-bg: #0b0512;
-  --color-card-bg: rgba(26, 14, 42, 0.7);
-  --color-card-border: rgba(244, 63, 94, 0.25);
-  --color-text-slate-800: #f5eefc;
-  --color-text-slate-900: #ffffff;
-  --color-surface-container-low: #1e102f;
-}
-
-[data-theme="ocean-glacier"] {
-  --color-primary: #ffffff;
-  --color-secondary: #0ea5e9; /* Sky blue */
-  --color-secondary-rgba: 14, 165, 233;
-  --color-secondary-container: rgba(16, 185, 129, 0.2); /* Mint glacier container */
-  --color-fin-bg: #06283d; /* Deep sea navy */
-  --color-fin-slate: #03141f;
-  --color-fin-emerald: #10b981; /* Mint brand */
-  --color-fin-border: rgba(21, 94, 117, 0.35);
-  --color-fin-glass: rgba(6, 40, 61, 0.85);
-  
-  --color-header-bg: #03141f;
-  --color-card-bg: rgba(7, 52, 78, 0.75);
-  --color-card-border: rgba(14, 165, 233, 0.2);
-  --color-text-slate-800: #e0f2fe;
-  --color-text-slate-900: #ffffff;
-  --color-surface-container-low: #0b3d5b;
-}
-
-[data-theme="charcoal-rose"] {
-  --color-primary: #1c1c1e;
-  --color-secondary: #fb7185; /* Matte rose gold accent */
-  --color-secondary-rgba: 251, 113, 133;
-  --color-secondary-container: rgba(251, 113, 133, 0.15);
-  --color-fin-bg: #f4f4f5; /* Clean Nordic zinc gray */
-  --color-fin-slate: #1c1c1e; /* Nordic matte charcoal */
-  --color-fin-emerald: #fb7185;
-  --color-fin-border: #e4e4e7;
-  --color-fin-glass: rgba(255, 255, 255, 0.8);
-  
-  --color-header-bg: #ffffff;
-  --color-card-bg: #ffffff;
-  --color-card-border: #e4e4e7;
-  --color-text-slate-800: #27272a;
-  --color-text-slate-900: #09090b;
-  --color-surface-container-low: #f4f4f5;
-}
 
 /* ================= DARK GLASSMORPHIC THEME OVERRIDES ================= */
 [data-theme="midnight-neon"] .bg-white,

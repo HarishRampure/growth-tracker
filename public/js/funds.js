@@ -168,21 +168,8 @@ class FundsView {
             </div>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="text-slate-400 font-bold border-b border-slate-100">
-                  <th class="py-3 px-2">Date</th>
-                  <th class="py-3 px-2">Goal Pot</th>
-                  <th class="py-3 px-2">Action Type</th>
-                  <th class="py-3 px-2">Description / Note</th>
-                  <th class="py-3 px-2 text-right">Amount (₹)</th>
-                </tr>
-              </thead>
-              <tbody id="savings-ledger-body">
-                <!-- Rendered dynamically -->
-              </tbody>
-            </table>
+          <div id="savings-ledger-container">
+            <!-- Rendered dynamically as responsive table/cards -->
           </div>
         </div>
 
@@ -328,15 +315,10 @@ class FundsView {
               ₹${formatCompactValue(totalSaved)}
             </text>
           </svg>
-        `;
-      }
-    }
-  }
-
-  // Mapped activity logs
+    // Mapped activity logs
   renderActivityLogs(funds) {
-    const tbody = document.getElementById('savings-ledger-body');
-    if (!tbody) return;
+    const container = document.getElementById('savings-ledger-container');
+    if (!container) return;
 
     const allLogs = [];
     funds.forEach(f => {
@@ -356,17 +338,16 @@ class FundsView {
     allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (allLogs.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5" class="py-8 text-center text-slate-400 font-medium italic">
-            No savings deposits or withdrawals logged yet.
-          </td>
-        </tr>
+      container.innerHTML = `
+        <div class="py-8 text-center text-slate-400 font-medium italic text-xs">
+          No savings deposits or withdrawals logged yet.
+        </div>
       `;
       return;
     }
 
-    tbody.innerHTML = allLogs.map(log => {
+    // Render both desktop table and mobile cards
+    const desktopRows = allLogs.map(log => {
       const colorTheme = this.colors[log.fundColor] || this.colors.emerald;
       const logDate = new Date(log.date);
       const isContrib = log.type === 'Contribution';
@@ -383,7 +364,7 @@ class FundsView {
 
       return `
         <tr class="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
-          <td class="py-3 px-2 text-slate-500 font-medium">
+          <td class="py-3 px-2 text-slate-550 font-semibold">
             ${logDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
           </td>
           <td class="py-3 px-2">
@@ -397,8 +378,8 @@ class FundsView {
               ${log.type}
             </span>
           </td>
-          <td class="py-3 px-2 text-slate-500 max-w-[200px] truncate font-medium" title="${log.note || 'None'}">
-            ${log.note || '<span class="text-slate-300">N/A</span>'}
+          <td class="py-3 px-2 text-slate-500 max-w-[200px] truncate font-semibold" title="${log.note || 'None'}">
+            ${log.note || '<span class="text-slate-350">N/A</span>'}
           </td>
           <td class="py-3 px-2 text-right font-black ${amountClass}">
             ${amountText}
@@ -406,6 +387,68 @@ class FundsView {
         </tr>
       `;
     }).join('');
+
+    const mobileCards = allLogs.map(log => {
+      const colorTheme = this.colors[log.fundColor] || this.colors.emerald;
+      const logDate = new Date(log.date);
+      const isContrib = log.type === 'Contribution';
+      
+      const badgeClass = isContrib 
+        ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
+        : 'bg-rose-50 border-rose-100 text-rose-700';
+
+      const amountText = isContrib 
+        ? `+₹${log.amount.toLocaleString('en-IN')}` 
+        : `-₹${log.amount.toLocaleString('en-IN')}`;
+
+      const amountClass = isContrib ? 'text-emerald-650 font-black' : 'text-rose-650 font-black';
+
+      return `
+        <div class="border border-slate-100/70 rounded-xl p-4 bg-slate-50/20 flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full" style="background-color: ${colorTheme.hex}"></span>
+              <span class="font-extrabold text-slate-800 text-xs">${logNameTrim(log.fundName)}</span>
+            </div>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${log.type}</span>
+          </div>
+          <div class="flex items-baseline justify-between text-xs pt-1">
+            <span class="text-[10px] text-slate-400 font-semibold">${logDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            <span class="font-black ${amountClass} text-sm">${amountText}</span>
+          </div>
+          ${log.note ? `
+            <p class="text-[10px] text-slate-500 font-medium italic border-t border-slate-50/50 pt-1.5 mt-1 leading-relaxed">
+              Note: ${log.note}
+            </p>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <!-- Desktop Table View -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="text-slate-400 font-bold border-b border-slate-100">
+              <th class="py-3 px-2">Date</th>
+              <th class="py-3 px-2">Goal Pot</th>
+              <th class="py-3 px-2">Action Type</th>
+              <th class="py-3 px-2">Description / Note</th>
+              <th class="py-3 px-2 text-right">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${desktopRows}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile List View -->
+      <div class="block md:hidden space-y-3.5">
+        ${mobileCards}
+      </div>
+    `;
   }
 
   // ===============================================

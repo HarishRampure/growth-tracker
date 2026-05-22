@@ -64,7 +64,7 @@ class PortfolioView {
                     <span class="text-[9px] font-bold px-2.5 py-0.5 bg-slate-50 border border-slate-200 rounded-full text-slate-500">${share}% Allocation</span>
                   </div>
 
-                  <div class="grid grid-cols-2 gap-4 py-2">
+                  <div class="grid grid-cols-2 gap-2 sm:gap-4 py-2">
                     <div>
                       <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">CURRENT MARKET VALUE</span>
                       <span class="text-xl font-extrabold text-slate-800">₹${item.value.toLocaleString('en-IN')}</span>

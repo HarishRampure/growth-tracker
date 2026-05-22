@@ -74,8 +74,85 @@ class DashboardView {
 
     const state = window.stateEngine.data;
     const totalCash = window.stateEngine.getTotalCash();
-    const streakCount = state.streak ? state.streak.count : 1;
-    const achievements = window.stateEngine.checkAchievements();
+    
+    // Calculate if any budget is exceeded or near limit
+    const budgets = state.budgets || [];
+    const exceededCount = budgets.filter(b => {
+      const spent = window.stateEngine.getCategorySpentThisMonth(b.category);
+      return spent > b.limit;
+    }).length;
+
+    const nearLimitCount = budgets.filter(b => {
+      const spent = window.stateEngine.getCategorySpentThisMonth(b.category);
+      const percent = b.limit > 0 ? (spent / b.limit) * 100 : 0;
+      return percent >= 80 && spent <= b.limit;
+    }).length;
+
+    let budgetHealthTitle = "All Budgets Safe";
+    let budgetHealthDesc = "Outstanding job keeping spending low!";
+    let budgetHealthColor = "from-emerald-500/10 to-teal-600/10 text-emerald-600 border-emerald-500/20";
+    let budgetHealthIcon = "check_circle";
+    let budgetHealthIconBg = "from-emerald-500 to-teal-600";
+
+    if (exceededCount > 0) {
+      budgetHealthTitle = `${exceededCount} Exceeded!`;
+      budgetHealthDesc = "Reduce spending immediately to recover.";
+      budgetHealthColor = "from-rose-500/10 to-orange-600/10 text-rose-600 border-rose-500/20";
+      budgetHealthIcon = "warning";
+      budgetHealthIconBg = "from-rose-500 to-orange-600";
+    } else if (nearLimitCount > 0) {
+      budgetHealthTitle = `${nearLimitCount} Near Limit`;
+      budgetHealthDesc = "Approaching 80% threshold limits.";
+      budgetHealthColor = "from-amber-500/10 to-orange-600/10 text-amber-600 border-amber-500/20";
+      budgetHealthIcon = "error";
+      budgetHealthIconBg = "from-amber-500 to-orange-600";
+    }
+
+    // Build detail warning items
+    const warningList = budgets.map(b => {
+      const spent = window.stateEngine.getCategorySpentThisMonth(b.category);
+      const percent = b.limit > 0 ? (spent / b.limit) * 100 : 0;
+      return { category: b.category, limit: b.limit, spent, percent };
+    }).filter(w => w.percent >= 80);
+
+    let budgetWarningsHtml = "";
+    if (warningList.length > 0) {
+      budgetWarningsHtml = `
+        <!-- 🚨 BUDGET BREACH ALERT PANEL -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3.5 animate-slide-up mb-2">
+          <div class="flex items-center space-x-2 text-rose-500">
+            <span class="material-symbols-outlined text-xl">notification_important</span>
+            <h4 class="font-extrabold text-sm text-slate-800">Monthly Budget Alerts</h4>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${warningList.map(w => {
+              const isOver = w.spent > w.limit;
+              const accentColor = isOver ? 'text-rose-500 bg-rose-50 border-rose-100' : 'text-amber-500 bg-amber-50 border-amber-100';
+              const progressColor = isOver ? 'bg-rose-500' : 'bg-amber-500';
+              return `
+                <div class="border rounded-xl p-3 bg-slate-50/30 hover:border-slate-350 transition-all flex flex-col justify-between">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-slate-700 truncate max-w-[120px]">${w.category}</span>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${accentColor}">
+                      ${isOver ? 'Exceeded' : 'Near Limit'}
+                    </span>
+                  </div>
+                  <div class="space-y-1.5">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-semibold">
+                      <span>Spent: ₹${w.spent.toLocaleString('en-IN')}</span>
+                      <span>Cap: ₹${w.limit.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div class="${progressColor} h-full" style="width: ${Math.min(w.percent, 100)}%"></div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
     
     // Calculate daily spends this month (excluding Bills and Salary income)
     const now = new Date();
@@ -119,19 +196,21 @@ class DashboardView {
     container.innerHTML = `
       <div class="space-y-6 animate-slide-up">
         
-        <!-- 🔥 STREAK & WISDOM BENTO HEADER -->
+        ${budgetWarningsHtml}
+
+        <!-- 💡 BUDGET HEALTH & WISDOM BENTO HEADER -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <!-- 🔥 Streak Card (4 cols) -->
-          <div class="md:col-span-4 bg-gradient-to-br from-amber-500/10 to-orange-600/10 border border-orange-500/20 rounded-2xl p-6 shadow-sm flex items-center justify-between relative overflow-hidden group">
-            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-orange-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+          <!-- 📊 Budget Health Card (4 cols) -->
+          <div class="md:col-span-4 bg-gradient-to-br ${budgetHealthColor} rounded-2xl p-6 shadow-sm flex items-center justify-between relative overflow-hidden group">
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-slate-500/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500"></div>
             <div class="flex items-center space-x-4">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-orange-500/30 streak-glow flex-shrink-0">
-                <span class="material-symbols-outlined text-3xl animate-pulse">local_fire_department</span>
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr ${budgetHealthIconBg} text-white flex items-center justify-center shadow-lg flex-shrink-0">
+                <span class="material-symbols-outlined text-3xl">${budgetHealthIcon}</span>
               </div>
               <div>
-                <span class="text-[10px] font-bold text-orange-500 uppercase tracking-widest block mb-0.5">Daily Streak</span>
-                <h3 class="text-2xl font-black text-slate-800 leading-tight">${streakCount} Days Active</h3>
-                <p class="text-[10.5px] text-slate-450 mt-0.5">Keep tracking daily to grow your streak!</p>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Budget Health</span>
+                <h3 class="text-2xl font-black text-slate-800 leading-tight">${budgetHealthTitle}</h3>
+                <p class="text-[10.5px] text-slate-450 mt-0.5">${budgetHealthDesc}</p>
               </div>
             </div>
           </div>
@@ -161,7 +240,7 @@ class DashboardView {
           <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[135px] relative overflow-hidden group">
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">💸 Money I Have</span>
-              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-secondary flex items-center justify-center font-bold shadow-xs">
+              <div class="w-10 h-10 rounded-xl bg-slate-50 text-secondary flex items-center justify-center font-bold shadow-xs">
                 <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
               </div>
             </div>
@@ -364,11 +443,11 @@ class DashboardView {
 
         </div>
 
-        <!-- 📜 HISTORICAL QUICK LIST & ACHIEVEMENTS TROPHY ROOM ROW -->
+        <!-- 📜 HISTORICAL QUICK LIST ROW -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          <!-- Recent Spends Table (8 cols) -->
-          <div class="lg:col-span-8 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:border-slate-350 transition-all duration-300">
+          <!-- Recent Spends Table (12 cols) -->
+          <div class="lg:col-span-12 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:border-slate-350 transition-all duration-300">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
               <div>
                 <h3 class="font-extrabold text-sm text-slate-800">Recent Daily Spends</h3>
@@ -399,8 +478,8 @@ class DashboardView {
                       const txDate = new Date(tx.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
                       return `
                         <tr class="hover:bg-slate-50/50 transition-colors">
-                          <td class="py-3.5 text-slate-400 font-semibold">${txDate}</td>
-                          <td class="font-bold text-slate-700">${tx.payee}</td>
+                          <td class="py-3.5 text-slate-450 font-semibold">${txDate}</td>
+                          <td class="font-bold text-slate-800">${tx.payee}</td>
                           <td>
                             <span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-semibold">${tx.category}</span>
                           </td>
@@ -417,43 +496,6 @@ class DashboardView {
                     }).join('')}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <!-- Achievements Trophy Room Card (4 cols) -->
-          <div class="lg:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-slate-350 transition-all duration-300">
-            <div class="border-b border-slate-100 pb-3.5 mb-4">
-              <h3 class="font-extrabold text-sm text-slate-800">Financial Trophies</h3>
-              <p class="text-[11px] text-slate-400">Unlock dynamic medals for smart habits</p>
-            </div>
-            
-            <div class="flex-1 flex flex-col justify-center space-y-4">
-              ${achievements.active.length === 0 ? `
-                <div class="text-center p-4">
-                  <span class="material-symbols-outlined text-3xl text-slate-300 mb-2">workspace_premium</span>
-                  <p class="text-xs font-semibold text-slate-450 leading-relaxed">No badges unlocked yet. Pay all monthly bills, save for a goal, or log manual spends to unlock your first trophy!</p>
-                </div>
-              ` : `
-                <div class="grid grid-cols-2 gap-3">
-                  ${achievements.active.map(b => `
-                    <div class="border border-slate-100 rounded-xl p-3 flex flex-col items-center justify-center text-center bg-slate-50/20 hover:bg-slate-50 hover:shadow-xs transition-all relative group/badge cursor-help" title="${b.title}: ${b.desc}">
-                      <div class="w-12 h-12 rounded-full bg-gradient-to-tr ${b.color} text-slate-950 flex items-center justify-center shadow-md shadow-slate-100 border border-white badge-glow mb-2 transition-transform duration-300 group-hover/badge:scale-110">
-                        <span class="material-symbols-outlined text-2xl font-bold leading-none">${b.icon}</span>
-                      </div>
-                      <span class="text-[11px] font-extrabold text-slate-700 leading-tight">${b.title}</span>
-                      <span class="text-[8.5px] font-bold text-slate-400 mt-0.5 leading-tight">${b.desc.split('!')[0]}</span>
-                    </div>
-                  `).join('')}
-                </div>
-              `}
-            </div>
-            
-            <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Level Status</span>
-              <div class="flex items-center space-x-1.5 font-bold ${achievements.tierColor} px-2.5 py-1 rounded-md text-[10px] border">
-                <span class="material-symbols-outlined text-[12px] leading-none">${achievements.tierIcon}</span>
-                <span>${achievements.tier}</span>
-              </div>
             </div>
           </div>
 
