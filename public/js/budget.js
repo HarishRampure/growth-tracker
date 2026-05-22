@@ -18,9 +18,15 @@ class BudgetsView {
             <h3 class="font-extrabold text-sm text-slate-800">Monthly Budgeting Suite</h3>
             <p class="text-[10px] text-slate-400">Set limits for discrete spending groups. Warning banners trigger automatically at 80% thresholds.</p>
           </div>
-          <div class="flex items-center space-x-2 text-[10px] uppercase font-bold tracking-widest text-finEmerald bg-emerald-500/10 px-3 py-1.5 rounded">
-            <i class="fa-solid fa-bell"></i>
-            <span>Active Alerts Enabled</span>
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 text-[10px] uppercase font-bold tracking-widest text-finEmerald bg-emerald-500/10 px-3 py-1.5 rounded">
+              <i class="fa-solid fa-bell"></i>
+              <span>Active Alerts Enabled</span>
+            </div>
+            <button onclick="window.budgetsView.openCreateModal()" class="flex items-center space-x-1.5 text-[10px] uppercase font-extrabold tracking-widest text-finSlate bg-finEmerald hover:bg-emerald-600 px-3.5 py-2 rounded shadow-md hover:scale-105 transition-all">
+              <i class="fa-solid fa-plus-circle text-[11px]"></i>
+              <span>Create Category</span>
+            </button>
           </div>
         </div>
 
@@ -104,6 +110,41 @@ class BudgetsView {
     window.stateEngine.updateBudgetLimit(category, limitNum);
     window.toastNotification(`Monthly limit for ${category} adjusted to ₹${limitNum.toLocaleString('en-IN')}`, "success");
     this.render(this.container);
+  }
+
+  openCreateModal() {
+    const overlay = document.getElementById('budget-modal-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+
+    const form = document.getElementById('budget-form');
+    const closeBtn = document.getElementById('close-budget-modal');
+
+    const closeModal = () => {
+      overlay.classList.add('hidden');
+      form.reset();
+    };
+
+    closeBtn.onclick = closeModal;
+    overlay.onclick = (e) => {
+      if (e.target === overlay) closeModal();
+    };
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const category = document.getElementById('budget-category').value.trim();
+      const limit = Number(document.getElementById('budget-limit').value);
+
+      if (!category || isNaN(limit) || limit <= 0) {
+        alert("Please enter valid details.");
+        return;
+      }
+
+      await window.stateEngine.createBudgetCategory(category, limit);
+      window.toastNotification(`Budget category "${category}" created successfully!`, "success");
+      closeModal();
+      this.render(this.container);
+    };
   }
 }
 

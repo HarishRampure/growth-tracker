@@ -14,8 +14,14 @@ class PortfolioView {
         
         <!-- 💡 PORTFOLIO HEADER BANNER -->
         <div class="glass-card rounded-fin p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h3 class="font-extrabold text-sm text-slate-800">Portfolio Wealth Manager</h3>
+          <div class="flex-1">
+            <div class="flex items-center justify-between md:justify-start md:space-x-4 mb-2">
+              <h3 class="font-extrabold text-sm text-slate-800">Portfolio Wealth Manager</h3>
+              <button onclick="window.portfolioView.openCreateModal()" class="flex items-center space-x-1.5 text-[9px] uppercase font-extrabold tracking-widest text-finSlate bg-finEmerald hover:bg-emerald-600 px-3 py-1.5 rounded shadow-md hover:scale-105 transition-all">
+                <i class="fa-solid fa-plus-circle text-[10px]"></i>
+                <span>Add Asset</span>
+              </button>
+            </div>
             <p class="text-[10px] text-slate-400">Index equities, mutual funds, gold bonds, and recurring high-yield fixed deposits in one dashboard.</p>
           </div>
           <div class="text-right">
@@ -116,6 +122,49 @@ class PortfolioView {
     window.stateEngine.updateInvestment(id, value, sip);
     window.toastNotification(`Valuation parameter updated for ${name}`, "success");
     this.render(this.container);
+  }
+
+  openCreateModal() {
+    const overlay = document.getElementById('investment-modal-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+
+    const form = document.getElementById('investment-form');
+    const closeBtn = document.getElementById('close-investment-modal');
+
+    const closeModal = () => {
+      overlay.classList.add('hidden');
+      form.reset();
+    };
+
+    closeBtn.onclick = closeModal;
+    overlay.onclick = (e) => {
+      if (e.target === overlay) closeModal();
+    };
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('investment-name').value.trim();
+      const assetClass = document.getElementById('investment-class').value;
+      const value = Number(document.getElementById('investment-value').value);
+      const sipAmount = Number(document.getElementById('investment-sip').value) || 0;
+
+      if (!name || isNaN(value) || value < 0) {
+        alert("Please enter valid details.");
+        return;
+      }
+
+      await window.stateEngine.addInvestmentAsset({
+        name,
+        assetClass,
+        value,
+        sipAmount
+      });
+
+      window.toastNotification(`Asset "${name}" added to wealth portfolio successfully!`, "success");
+      closeModal();
+      this.render(this.container);
+    };
   }
 }
 

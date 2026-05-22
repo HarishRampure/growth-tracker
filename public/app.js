@@ -642,6 +642,62 @@ class ThemeController {
   }
 }
 
+// ================= MOBILE SIDEBAR DRAWER CONTROLLER =================
+const MobileSidebar = {
+  sidebar: null,
+  backdrop: null,
+  menuBtn: null,
+
+  init() {
+    this.sidebar  = document.getElementById('sidebar-panel');
+    this.backdrop = document.getElementById('sidebar-backdrop');
+    this.menuBtn  = document.getElementById('mobile-menu-btn');
+
+    if (this.menuBtn) {
+      this.menuBtn.addEventListener('click', () => this.open());
+    }
+    if (this.backdrop) {
+      this.backdrop.addEventListener('click', () => this.close());
+    }
+
+    // Auto-collapse when any sidebar nav link or action button is tapped
+    const sidebarNav = document.getElementById('sidebar-panel');
+    if (sidebarNav) {
+      sidebarNav.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('click', () => {
+          // Only collapse on mobile (below md breakpoint = 768px)
+          if (window.innerWidth < 768) {
+            // Small delay so the click action fires first
+            setTimeout(() => this.close(), 150);
+          }
+        });
+      });
+    }
+
+    // Close drawer if window is resized to desktop size
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        this.close(true); // silent close — no animation needed
+      }
+    });
+  },
+
+  open() {
+    if (!this.sidebar || !this.backdrop) return;
+    this.sidebar.classList.remove('-translate-x-full');
+    this.backdrop.classList.remove('hidden');
+    // Prevent body scroll while drawer is open
+    document.body.style.overflow = 'hidden';
+  },
+
+  close(silent = false) {
+    if (!this.sidebar || !this.backdrop) return;
+    this.sidebar.classList.add('-translate-x-full');
+    this.backdrop.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+};
+
 // ================= BOOTSTRAP INITIALIZATION =================
 document.addEventListener('DOMContentLoaded', async () => {
   // 0. Initialize theme setting
@@ -656,10 +712,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 2. Init auth form handlers
   window.authController.init();
 
+  // 3. Init mobile sidebar drawer
+  MobileSidebar.init();
+
   // Run initial sync status check on boot
   await window.stateEngine.checkSyncStatus();
 
-  // 3. Check if user is already logged in (has stored token)
+  // 4. Check if user is already logged in (has stored token)
   const hasToken = !!window.stateEngine.token;
 
   if (hasToken) {

@@ -60,5 +60,5 @@ Thumbs.db
 .env.test.local
 .env.production.local
 
-# Build output
-public/index.css
+# Build output — keep index.css committed so deployment works without a build step
+# public/index.css

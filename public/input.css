@@ -211,12 +211,25 @@
   background: #94a3b8;
 }
 
+/* Premium Adaptive Brand Gradient */
+.premium-branding-gradient {
+  background: linear-gradient(135deg, var(--color-fin-emerald) 0%, var(--color-secondary) 100%);
+  box-shadow: 0 4px 14px 0 rgba(var(--color-secondary-rgba), 0.3);
+}
+
 /* Glassmorphism Surface Definition */
 .glass-card {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px -8px rgba(15, 23, 42, 0.08);
+  border-color: rgba(var(--color-secondary-rgba), 0.4) !important;
 }
 
 .dark-glass-card {
@@ -393,4 +406,71 @@ input[type="radio"]:checked + span {
 }
 .sound-toggle-btn:active {
   transform: scale(0.92);
+}
+
+/* ================= MOBILE RESPONSIVE LAYOUT OVERRIDES ================= */
+
+/* On mobile, body uses full-width flex column when sidebar is fixed (off-canvas) */
+@media (max-width: 767px) {
+  body {
+    /* Main content stretches full width since aside is fixed off-screen */
+    flex-direction: row;
+  }
+
+  /* The fixed sidebar gets a beautiful shadow when sliding in as a drawer */
+  #sidebar-panel {
+    box-shadow: 4px 0 32px -4px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Make modals scrollable & padded safely on small viewports */
+  #tx-modal-overlay,
+  #onboarding-overlay,
+  #budget-modal-overlay,
+  #investment-modal-overlay {
+    padding: 12px !important;
+    align-items: flex-start !important;
+    padding-top: 20px !important;
+    overflow-y: auto !important;
+  }
+
+  /* Remove max height restriction on modals so they scroll nicely */
+  .animate-slide-up {
+    max-height: none;
+  }
+
+  /* Ensure modal cards don't overflow horizontally on very narrow screens */
+  #tx-modal-overlay > div,
+  #onboarding-overlay > div,
+  #budget-modal-overlay > div,
+  #investment-modal-overlay > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Reduce px on inner form sections in modals for mobile breathing room */
+  #tx-form,
+  #budget-form,
+  #investment-form {
+    padding: 16px !important;
+  }
+
+  /* Compact grid layouts inside modals that have 2-col grids */
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  /* Tighter gap in form grids on mobile */
+  #tx-form .grid,
+  #budget-form .grid,
+  #investment-form .grid {
+    gap: 12px !important;
+  }
+}
+
+/* Smooth touch scrolling for mobile content */
+@media (max-width: 767px) {
+  #content-canvas {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
 }

@@ -48,25 +48,29 @@ const seedDatabase = async (models) => {
 
     const balanceCount = await BankBalance.countDocuments();
     if (balanceCount === 0) {
-      await BankBalance.insertMany(defaultBankBalances);
+      const docs = defaultBankBalances.map(({ _id, ...rest }) => rest);
+      await BankBalance.insertMany(docs);
       console.log('Seeded BankBalances into MongoDB Atlas.');
     }
 
     const budgetCount = await Budget.countDocuments();
     if (budgetCount === 0) {
-      await Budget.insertMany(defaultBudgets);
+      const docs = defaultBudgets.map(({ _id, ...rest }) => rest);
+      await Budget.insertMany(docs);
       console.log('Seeded Budgets into MongoDB Atlas.');
     }
 
     const investmentCount = await Investment.countDocuments();
     if (investmentCount === 0) {
-      await Investment.insertMany(defaultInvestments);
+      const docs = defaultInvestments.map(({ _id, ...rest }) => rest);
+      await Investment.insertMany(docs);
       console.log('Seeded Investments into MongoDB Atlas.');
     }
 
     const transactionCount = await Transaction.countDocuments();
     if (transactionCount === 0) {
-      await Transaction.insertMany(defaultTransactions);
+      const docs = defaultTransactions.map(({ _id, ...rest }) => rest);
+      await Transaction.insertMany(docs);
       console.log('Seeded Transactions into MongoDB Atlas.');
     }
   } catch (err) {

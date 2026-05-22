@@ -68,22 +68,22 @@ class GrowthState {
     if (!syncBadge) return;
 
     if (this.connection.online && this.connection.dbConnected) {
-      syncBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-[11px] font-bold bg-secondary-container/20 text-secondary border border-secondary-container/30";
+      syncBadge.className = "hidden sm:flex flex-shrink-0 items-center space-x-2 px-2.5 md:px-3 py-1.5 rounded-full text-[11px] font-bold bg-secondary-container/20 text-secondary border border-secondary-container/30";
       syncBadge.innerHTML = `
-        <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
-        <span>Atlas Active Sync</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse flex-shrink-0"></span>
+        <span class="hidden sm:inline">Atlas Active Sync</span>
       `;
     } else if (this.connection.online) {
-      syncBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-200";
+      syncBadge.className = "hidden sm:flex flex-shrink-0 items-center space-x-2 px-2.5 md:px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-200";
       syncBadge.innerHTML = `
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-        <span>Sync Fallback: In-Memory</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0"></span>
+        <span class="hidden sm:inline">Sync Fallback: In-Memory</span>
       `;
     } else {
-      syncBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200";
+      syncBadge.className = "hidden sm:flex flex-shrink-0 items-center space-x-2 px-2.5 md:px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200";
       syncBadge.innerHTML = `
-        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-        <span>Offline Mode (Local)</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0"></span>
+        <span class="hidden sm:inline">Offline Mode (Local)</span>
       `;
     }
   }
@@ -279,7 +279,11 @@ class GrowthState {
       { _id: "bud_shopping", category: "Shopping", limit: 10000 },
       { _id: "bud_others", category: "Others", limit: 5000 }
     ];
-    this.data.investments = [];
+    this.data.investments = JSON.parse(localStorage.getItem(`growth_cache_investments_${key}`)) || [
+      { _id: "inv_seed_1", name: "Nifty 50 Index Mutual Fund", assetClass: "Stocks", value: 120000, sipAmount: 5000, lastUpdated: new Date().toISOString() },
+      { _id: "inv_seed_2", name: "Sovereign Gold Bonds (SGB)", assetClass: "Gold", value: 45000, sipAmount: 0, lastUpdated: new Date().toISOString() },
+      { _id: "inv_seed_3", name: "SBI High-Yield Fixed Deposit", assetClass: "Fixed Deposits", value: 40000, sipAmount: 2000, lastUpdated: new Date().toISOString() }
+    ];
     this.data.bills = JSON.parse(localStorage.getItem(`growth_cache_bills_${key}`)) || [
       { _id: "bill_rent", name: "House Rent", amount: 15000, day: 5, paid: false },
       { _id: "bill_wifi", name: "Wifi Broadband", amount: 800, day: 10, paid: true },
@@ -411,6 +415,45 @@ class GrowthState {
       this.data.investments[idx].lastUpdated = new Date();
       this.saveLocalCache();
     }
+  }
+
+  async addInvestment(asset) {
+    const newAsset = {
+      _id: 'inv_local_' + Math.random().toString(36).substr(2, 9),
+      name: asset.name,
+      assetClass: asset.assetClass || 'Stocks',
+      value: Number(asset.value) || 0,
+      sipAmount: Number(asset.sipAmount) || 0,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    if (this.connection.online) {
+      try {
+        const res = await fetch(`${this.API_BASE}/investments`, {
+          method: 'POST',
+          headers: this.getHeaders(),
+          body: JSON.stringify(newAsset)
+        });
+        const saved = await res.json();
+        if (!res.ok) throw new Error(saved.error || "Failed to add investment");
+        this.data.investments.push(saved);
+      } catch (err) {
+        this.data.investments.push(newAsset);
+      }
+    } else {
+      this.data.investments.push(newAsset);
+    }
+    this.saveLocalCache();
+    this.notify();
+    return newAsset;
+  }
+
+  async addInvestmentAsset(asset) {
+    return this.addInvestment(asset);
+  }
+
+  async createBudgetCategory(category, limit) {
+    return this.updateBudgetLimit(category, limit);
   }
 
   // Add a new transaction
@@ -691,7 +734,7 @@ class GrowthState {
 
   // AGGREGATORS & HELPERS
   getNetWorth() {
-    return this.getTotalCash();
+    return this.getTotalCash() + this.getTotalInvestments();
   }
 
   getTotalCash() {
@@ -699,7 +742,7 @@ class GrowthState {
   }
 
   getTotalInvestments() {
-    return 0;
+    return this.data.investments.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
   }
 
   getSpentThisMonth() {
